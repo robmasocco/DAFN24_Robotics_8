@@ -1,0 +1,60 @@
+% Section 5 - Common interfaces
+% Roberto Masocco <roberto.masocco@uniroma2.it>
+% June 5, 2024
+
+% ### Common interfaces ###
+\section{Common interfaces}
+
+% --- Common interfaces ---
+\begin{frame}{Common interfaces}
+	A standard ROS 2 installation offers many \textbg{interface packages} (\emph{i.e.}, messages), to provide \textbg{standard data types} to communicate sensor measurements and related data.\\
+	\bigskip
+	The most important are:
+	\begin{itemize}
+		\item \texttt{sensor\_msgs}, for \textbg{sensor measurements};
+		\item \texttt{geometry\_msgs}, for \textbg{geometric data};
+		\item \texttt{nav\_msgs}, for \textbg{navigation data}.
+	\end{itemize}
+	\medskip
+	It is suggested to \textbg{always use these message types}, plus common best practices, to ensure full interoperability between sensor drivers and localization and mapping algorithms.\\
+  \bigskip
+  Try to \texttt{ros2 interface show} these messages to understand their structure!
+\end{frame}
+
+% --- sensor_msgs ---
+\begin{frame}{\texttt{sensor\_msgs}}{Common interfaces for sensors}
+	\begin{itemize}
+		\item \texttt{Imu}
+		\item \texttt{JointState}
+		\item \texttt{CameraInfo} and \texttt{Image}
+		\item \texttt{LaserScan}
+		\item \texttt{PointCloud2}
+		\item \texttt{Temperature}
+		\item \texttt{NavSatFix}
+		\item \texttt{Illuminance}
+		\item ...
+	\end{itemize}
+\end{frame}
+
+% --- geometry_msgs ---
+\begin{frame}{\texttt{geometry\_msgs}}{Common interfaces for algebraic data}
+  \begin{itemize}
+    \item \texttt{Vector3Stamped}
+    \item \texttt{QuaternionStamped}
+    \item \texttt{PoseWithCovarianceStamped}
+    \item \texttt{TwistWithCovarianceStamped}
+    \item \texttt{TransformStamped} (used by \texttt{tf2}!)
+    \item \texttt{AccelWithCovarianceStamped}
+    \item ...
+  \end{itemize}
+\end{frame}
+
+% --- nav_msgs ---
+\begin{frame}{\texttt{nav\_msgs}}{Common interfaces for navigation data}
+  \begin{itemize}
+    \item \texttt{Odometry}
+    \item \texttt{Path}
+    \item \texttt{OccupancyGrid}
+    \item ...
+  \end{itemize}
+\end{frame}
