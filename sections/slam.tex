@@ -1,0 +1,18 @@
+% Section 4 - Simultaneous Localization And Mapping
+% Roberto Masocco <roberto.masocco@uniroma2.it>
+% June 5, 2024
+
+% ### Simultaneous Localization And Mapping ###
+\section{Simultaneous Localization And Mapping}
+\graphicspath{{figs/section4/}}
+
+% --- Simultaneous Localization And Mapping ---
+\begin{frame}{Simultaneous Localization And Mapping}
+  The \textbg{SLAM} problem is a \textbg{chicken-and-egg} problem: a robot must \textbg{localize itself} within an environment, while \textbg{mapping} it.\\
+  \bigskip
+  The ultimate goal of SLAM is to enable the robot to \textbg{navigate} within the environment, while \textbg{updating} the map as it moves.\\
+  \bigskip
+  The robot must be able to \textbg{efficiently} and \textbg{accurately} build a map of the environment, while \textbg{localizing itself} within it, with respect to either the origin of the map or the starting point of the robot itself (\emph{i.e.}, with either some or none \textbg{prior notion of the environment}).\\
+  \bigskip
+  To solve this problem, \textbg{sensor fusion} techniques are often employed, mixing data coming from \textbg{heterogeneous sensors} and accounting for \textbg{sensor faults}.
+\end{frame}
