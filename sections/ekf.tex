@@ -1,0 +1,185 @@
+% Section 6 - The Extended Kalman Filter
+% Roberto Masocco <roberto.masocco@uniroma2.it>
+% June 7, 2024
+
+% ### The Extended Kalman Filter ###
+\section{The Extended Kalman Filter}
+
+% --- Odometric reconstruction ---
+\begin{frame}{Odometric reconstruction}{An elementary sensor fusion technique}
+  \only<1->{
+    Suppose you have a robot equipped with $m$ \textbg{sensors} producing \textbg{measurements} $q_i$, $i = 1,\dotsc,m$, and a \textbg{motion model} that predicts the \textbg{state} of the robot $x_k$ at time $k$ given the state at time $k-1$ and the control input $u_k$ applied to the robot.\\
+    \bigskip
+    You can use these data to perform an \textbg{odometric reconstruction}: integrating the motion model with sensor data and the \textbg{estimated state} of the robot.
+  }
+  \only<2>{
+    \bigskip
+    \begin{alertblock}{}
+      \centering
+      \textbr{Measurements are affected by noise, that this technique does not account for.}
+    \end{alertblock}
+    Noise may even be due to \textbg{physical phenomena} like slippage, vibrations, or sensor faults.
+  }
+\end{frame}
+
+% --- Modelling noise ---
+\begin{frame}{Modelling noise}{Gaussian random variables}
+  Suppose that $m=2$. At any given time, the \textbg{measurement} of a quantity $x$ can be modeled as a \textbg{Gaussian random variable} centered around the \textbg{true value} of $x$ with a certain \textbg{standard deviation}:
+  \begin{itemize}
+    \item $q_1 \sim \mathcal{N}(x,\sigma_1^2)$;
+    \item $q_2 \sim \mathcal{N}(x,\sigma_2^2)$.
+  \end{itemize}
+  Having distinct sensors makes these variables \textbg{independent}. This is reasonable because:
+  \begin{itemize}
+    \item of well-known results, \emph{e.g.}, the Central Limit Theorem;
+    \item the \textbg{average} is the real value of $x$ if we rule out \textbg{systematic errors}, by, \emph{e.g.}, calibrating the sensor;
+    \item the \textbg{variance} models the \textbg{dispersion} of the measurements around the central value.
+  \end{itemize}
+\end{frame}
+\begin{frame}{Modelling noise}{Gaussian random variables}
+  Note that, by relying on \textbg{independence}, \textbg{Bayes' theorem}, and the \textbg{properties} of the Gaussian distribution:
+  \begin{itemize}
+    \item $q_1 \sim \mathcal{N}(x,\sigma_1^2) \Rightarrow x \sim \mathcal{N}(q_1,\sigma_1^2)$;
+    \item $q_2 \sim \mathcal{N}(x,\sigma_2^2) \Rightarrow x \sim \mathcal{N}(q_2,\sigma_2^2)$;
+  \end{itemize}
+  \emph{i.e.}, $x$ \textbg{is also a Gaussian random variable} centered around a measurement.
+\end{frame}
+\begin{frame}{Modelling noise}{Combining variables}
+  Similarly, we can combine the two measurements $q_1$ and $q_2$ to obtain a \textbg{better estimate} of $x$, as $x \sim \mathcal{N}(q,\sigma^2)$, where:
+  \begin{itemize}
+    \item $q = \frac{\sigma_2^2 q_1 + \sigma_1^2 q_2}{\sigma_1^2 + \sigma_2^2}$;
+    \item $\sigma^2 = \frac{\sigma_1^2 \sigma_2^2}{\sigma_1^2 + \sigma_2^2}$;
+  \end{itemize}
+  \emph{i.e.}, $x$ is a new Gaussian random variable centered around a \textbg{weighted average} of the measurements, with a \textbg{variance} that decreases as the \textbg{uncertainty} of the measurements decreases.
+\end{frame}
+
+% --- Combining two measurements ---
+\begin{frame}{Combining two measurements}{Step by step}
+  Suppose you have to update an \textbg{estimate} $\hat{x}$ of a quantity $x$ and its \textbg{variance} $\Sigma^2$ with two measurements $q_1$ and $q_2$:
+  \begin{enumerate}
+    \item Measurement $q_1$ arrives: $\hat{x}_1 = q_1$, $\Sigma_1^2=\sigma_1^2$.
+    \item Measurement $q_2$ arrives.
+    \item $\hat{x}_{1,2} = \frac{\Sigma_1^2 q_2 + \sigma_2^2 \hat{x}_1}{\Sigma_1^2 + \sigma_2^2} = \hat{x}_1 + \frac{\Sigma_1^2}{\Sigma_1^2+\sigma_2^2}(q_2 - \hat{x}_1)$.
+    \item $\Sigma_{1,2}^2 = \frac{\Sigma_1^2 \sigma_2^2}{\Sigma_1^2 + \sigma_2^2} = (1-\frac{\Sigma_1^2}{\Sigma_1^2+\sigma_2^2})\Sigma_1^2$.
+  \end{enumerate}
+\end{frame}
+
+% --- Combining many measurements ---
+\begin{frame}{Combining many measurements}{The first innovation}
+  Suppose now that you can receive $m$ measurements in \textbg{subsequent steps}. Then:
+  \begin{equation}
+    \hat{x}_{k+1} = \hat{x}_k + V_{k+1}(q_{k+1} - \hat{x}_k),
+  \end{equation}
+  \begin{equation}
+    \Sigma_{k+1}^2 = (1 - V_{k+1})\Sigma_k^2,
+  \end{equation}
+  where:
+  \begin{equation}
+    V_{k+1} = \frac{\Sigma_k^2}{\Sigma_k^2 + \sigma_{k+1}^2},
+  \end{equation}
+  and $V_{k+1} \in (0,1)$. It is a \textbg{sampled approximation}.\\
+  Note what happens when the new $k+1$-th measurement is either \textbg{very accurate} ($\sigma_{k+1}^2 \ll \Sigma_k^2$) or \textbg{very noisy} ($\sigma_{k+1}^2 \gg \Sigma_k^2$).
+\end{frame}
+
+% --- Kalman filter ---
+\begin{frame}{Kalman filter}{The scalar case}
+  Suppose you have a \textbg{dynamic system} with a \textbg{discrete-time model}:
+  \begin{equation}
+    x_{k+1} = ax_k + bu_k + \omega_k,
+  \end{equation}
+  with $\omega_k \sim \mathcal{N}(0,\sigma_{\omega}^2)$, and \textbg{measurements that depend on the state}:
+  \begin{equation}
+    z_k = cx_k + \nu_k,
+  \end{equation}
+  where $\nu_k \sim \mathcal{N}(0,\sigma_{\nu}^2)$ is the \textbg{noise}.
+\end{frame}
+\begin{frame}{Kalman filter}{The scalar case}
+  Initialize the \textbg{estimate} as $\hat{x}_0$ and the \textbg{covariance} as $P_0$.\\
+  Then, relying on the same properties as the previous cases:
+  \begin{subequations}
+    \begin{align}
+      \hat{x}_{k+1}^{-} &= a\hat{x}_k + bu_k,\label{eq:predictionx}\\
+      P_{k+1}^{-} &= a^2P_k + \sigma_{\omega}^2,\label{eq:predictioncov}\\
+      K_{k+1} &= \frac{P_{k+1}^{-}c}{c^2P_{k+1}^{-} + \sigma_{\nu}^2},\label{eq:kalmangain}\\
+      \hat{x}_{k+1} &= \hat{x}_{k+1}^{-} + K_{k+1}(z_{k+1} - c\hat{x}_{k+1}^{-}),\label{eq:innovx}\\
+      P_{k+1} &= (1 - K_{k+1}c)P_{k+1}.\label{eq:innovcov}
+    \end{align}
+  \end{subequations}
+  \eqref{eq:predictionx}-\eqref{eq:predictioncov} compose the \textbg{prediction step} of the \textbg{a priori estimate}, \eqref{eq:kalmangain} is the \textbg{Kalman gain}, and \eqref{eq:innovx}-\eqref{eq:innovcov} are the \textbg{correction step}, applying the \textbg{innovation term} to compute the \textbg{a posteriori estimate}.
+\end{frame}
+\begin{frame}{Kalman filter}{The vectorial case}
+  The \textbg{vectorial case} is a \textbg{generalization} of the scalar case, using \textbg{vectors} and \textbg{covariance matrices}.\\
+  Suppose that now you have this model:
+  \begin{equation}
+    x_{k+1} = Ax_k + Bu_k + \omega_k,
+  \end{equation}
+  where $A$ and $B$ are \textbg{matrices}, $\omega_k \sim \mathcal{N}(0,Q_{\omega})$, and the \textbg{measurement} is:
+  \begin{equation}
+    z_k = Cx_k + \nu_k,
+  \end{equation}
+  where $\nu_k \sim \mathcal{N}(0,Q_{\nu})$.
+\end{frame}
+\begin{frame}{Kalman filter}{The vectorial case}
+  By applying the same reasoning as before, with appropriate algebraic manipulations:
+  \begin{subequations}
+    \begin{align}
+      \hat{x}_{k+1}^{-} &= A\hat{x}_k + Bu_k,\label{eq:predictionxvec}\\
+      P_{k+1}^{-} &= AP_kA^T + Q_{\omega},\label{eq:predictioncovvec}\\
+      K_{k+1} &= P_{k+1}^{-}C^T(CP_{k+1}^{-}C^T + Q_{\nu})^{-1},\label{eq:kalmangainvec}\\
+      \hat{x}_{k+1} &= \hat{x}_{k+1}^{-} + K_{k+1}(z_{k+1} - C\hat{x}_{k+1}^{-}),\label{eq:innovxvec}\\
+      P_{k+1} &= (I - K_{k+1}C)P_{k+1}^{-},\label{eq:innovcovvec}
+    \end{align}
+  \end{subequations}
+  where $I$ is the identity matrix.
+\end{frame}
+
+% --- Extended Kalman Filter ---
+\begin{frame}{Extended Kalman Filter}{The nonlinear case}
+  Suppose you have a \textbg{nonlinear model}:
+  \begin{subequations}
+    \begin{align}
+      x_{k+1} &= f(x_k,u_k,\omega_k),\\
+      z_k &= h(x_k,\nu_k),
+    \end{align}
+  \end{subequations}
+  with random variables as before.\\
+  In this case, we can resort to a \textbg{linearization} to \textbg{reapply the same reasoning}, but we lose \textbg{convergence properties}.\\
+  Nonetheless, the \textbg{Extended Kalman Filter} (EKF) is a \textbg{widely used} heuristic state estimation technique, achieving \textbg{good results} in many practical scenarios.
+\end{frame}
+\begin{frame}{Extended Kalman Filter}{The linearization}
+  Consider two subsequent time instants $k$ and $k+1$.\\
+  Given the \textbg{current estimate} $\hat{x}_k$ at time $k$ and the \textbg{prediction} $\hat{x}_{k+1}^{-}$ at time $k+1$, we can write:
+  \begin{subequations}
+    \begin{align}
+      f(x_k,u_k,\omega_k) &\approx f(\hat{x}_k,u_k,0) + F_k(x_k - \hat{x}_k) + W_k\omega_k,\\
+      h(x_{k+1},\nu_{k+1}) &\approx h(\hat{x}_{k+1}^{-},0) + H_{k+1}(x_{k+1} - \hat{x}_{k+1}^{-}) + L_{k+1}\nu_{k+1},
+    \end{align}
+  \end{subequations}
+  where $F=\partial f/\partial x$, $W=\partial f/\partial \omega$, $H=\partial h/\partial x$, and $L=\partial h/\partial \nu$ are Jacobian matrices.\\
+  Grouping some \textbg{known terms}, these lead to a \textbg{linear system}:
+  \begin{subequations}
+    \begin{align}
+      x_{k+1} &= F_k x_k + f_0(\hat{x}_k,u_k) + W_k\omega_k,\\
+      z_{k+1} - h_0(\hat{x}_{k+1}^{-}) &= H_{k+1}x_{k+1} + L_{k+1}\nu_{k+1},\label{eq:newmeas}
+    \end{align}
+  \end{subequations}
+  where \eqref{eq:newmeas} can be considered a measurement, subtracting a \textbg{known term} from the \textbg{true measurement}.
+\end{frame}
+\begin{frame}{Extended Kalman Filter}{The equations}
+  By applying the same reasoning as before, with appropriate algebraic manipulations:
+  \begin{subequations}
+    \begin{align}
+      \hat{x}_{k+1}^{-} &= f(\hat{x}_k,u_k,0),\\
+      P_{k+1}^{-} &= F_kP_kF_k^T + W_kQ_{\omega}W_k^T,\\
+      K_{k+1} &= P_{k+1}^{-}H_{k+1}^T(H_{k+1}P_{k+1}^{-}H_{k+1}^T + L_{k+1}Q_{\nu}L_{k+1}^T)^{-1},\\
+      \hat{x}_{k+1} &= \hat{x}_{k+1}^{-} + K_{k+1}(z_{k+1} - h(\hat{x}_{k+1}^{-},0)),\\
+      P_{k+1} &= (I - K_{k+1}H_{k+1})P_{k+1}^{-}.
+    \end{align}
+  \end{subequations}
+  It is a \textbg{good compromise} between \textbg{accuracy} and \textbg{computational complexity}.
+\end{frame}
+
+% TODO:
+% - rearrange section to explain this first
+% - it works empyrically. Pointers to other filters and estimators
+% - robot_localization
