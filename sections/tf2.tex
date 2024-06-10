@@ -1,4 +1,4 @@
-% Section 5 - The tf2 library
+% Section 3 - The tf2 library
 % Roberto Masocco <roberto.masocco@uniroma2.it>
 % June 5, 2024
 
@@ -27,14 +27,13 @@
 \begin{frame}{The tf2 library}
 	\begin{columns}
 		\column{.6\textwidth}
-		\texttt{tf2} is the \textbg{standard ROS 2 library} to handle rigid transformations.\\
-		\medskip
-		It allows to:
+		\texttt{tf2} is the \textbg{standard ROS 2 library} to handle rigid transformations. It allows to:
 		\begin{itemize}
-			\item \textbg{broadcast} and \textbg{listen} to transformations, thanks to appropriate buffering subscribers and publishers;
+			\item \href{https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/Writing-A-Tf2-Broadcaster-Cpp.html}{\color{blue}\underline{\textbf{broadcast}}} and \href{https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/Writing-A-Tf2-Listener-Cpp.html}{\color{blue}\underline{\textbf{listen}}} to transformations;
+			\item optimize the broadcasting of \textbg{static transformations} vs the buffering of the others;
 			\item \textbg{transform} any kind of sensor data from one frame to another, making efficient computations in C++ code relying on the \texttt{Eigen} mathematical library;
-			\item broadcast \textbg{robot descriptions} from \texttt{URDF} files, listing links and joints and how they are connected, resulting in a \textbg{tree-like structure};
-			\item \textbg{command-line tools} to inspect the current tree status, and broadcast custom transformations.
+			\item broadcast static \textbg{robot descriptions} from \texttt{URDF} files, listing links and joints and how they are connected, resulting in a \textbg{tree-like structure};
+			\item \textbg{command-line tools} to introspect the tf tree.
 		\end{itemize}
 
 		\column{.4\textwidth}

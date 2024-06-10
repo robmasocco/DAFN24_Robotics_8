@@ -1,4 +1,4 @@
-% Section 6 - The Extended Kalman Filter
+% Section 4 - The Extended Kalman Filter
 % Roberto Masocco <roberto.masocco@uniroma2.it>
 % June 7, 2024
 
@@ -7,12 +7,12 @@
 
 % --- Odometric reconstruction ---
 \begin{frame}{Odometric reconstruction}{An elementary sensor fusion technique}
-  \only<1->{
-    Suppose you have a robot equipped with $m$ \textbg{sensors} producing \textbg{measurements} $q_i$, $i = 1,\dotsc,m$, and a \textbg{motion model} that predicts the \textbg{state} of the robot $x_k$ at time $k$ given the state at time $k-1$ and the control input $u_k$ applied to the robot.\\
+  \visible<1->{
+    Suppose you have a robot equipped with $m$ \textbg{sensors} producing \textbg{measurements} $q_i$, $i = 1,\dotsc,m$, and a \textbg{motion model} that predicts the \textbg{state} of the robot $x_k$ at time $k$ given the state $x_{k-1}$ at time $k-1$ and the control input $u_k$ applied to the robot.\\
     \bigskip
     You can use these data to perform an \textbg{odometric reconstruction}: integrating the motion model with sensor data and the \textbg{estimated state} of the robot.
   }
-  \only<2>{
+  \visible<2>{
     \bigskip
     \begin{alertblock}{}
       \centering
@@ -29,10 +29,11 @@
     \item $q_1 \sim \mathcal{N}(x,\sigma_1^2)$;
     \item $q_2 \sim \mathcal{N}(x,\sigma_2^2)$.
   \end{itemize}
-  Having distinct sensors makes these variables \textbg{independent}. This is reasonable because:
+  Having distinct sensors makes these variables \textbg{independent}.\\
+  These assumptions are reasonable because:
   \begin{itemize}
     \item of well-known results, \emph{e.g.}, the Central Limit Theorem;
-    \item the \textbg{average} is the real value of $x$ if we rule out \textbg{systematic errors}, by, \emph{e.g.}, calibrating the sensor;
+    \item the \textbg{average} is the real value of $x$ if we rule out \textbg{systematic errors} by, \emph{e.g.}, calibrating the sensor;
     \item the \textbg{variance} models the \textbg{dispersion} of the measurements around the central value.
   \end{itemize}
 \end{frame}
@@ -45,7 +46,7 @@
   \emph{i.e.}, $x$ \textbg{is also a Gaussian random variable} centered around a measurement.
 \end{frame}
 \begin{frame}{Modelling noise}{Combining variables}
-  Similarly, we can combine the two measurements $q_1$ and $q_2$ to obtain a \textbg{better estimate} of $x$, as $x \sim \mathcal{N}(q,\sigma^2)$, where:
+  Relying on the same results, we can \textbg{combine the two measurements} $q_1$ and $q_2$ to obtain a \textbg{better estimate} of $x$, as $x \sim \mathcal{N}(q,\sigma^2)$, where:
   \begin{itemize}
     \item $q = \frac{\sigma_2^2 q_1 + \sigma_1^2 q_2}{\sigma_1^2 + \sigma_2^2}$;
     \item $\sigma^2 = \frac{\sigma_1^2 \sigma_2^2}{\sigma_1^2 + \sigma_2^2}$;
@@ -94,7 +95,7 @@
   where $\nu_k \sim \mathcal{N}(0,\sigma_{\nu}^2)$ is the \textbg{noise}.
 \end{frame}
 \begin{frame}{Kalman filter}{The scalar case}
-  Initialize the \textbg{estimate} as $\hat{x}_0$ and the \textbg{covariance} as $P_0$.\\
+  Initialize the \textbg{estimate} as $\hat{x}_0$ ($0$ is mostly fine) and the \textbg{covariance} as $P_0$ (a rough estimate of the uncertainty).\\
   Then, relying on the same properties as the previous cases:
   \begin{subequations}
     \begin{align}
@@ -117,7 +118,8 @@
   \begin{equation}
     z_k = Cx_k + \nu_k,
   \end{equation}
-  where $\nu_k \sim \mathcal{N}(0,Q_{\nu})$.
+  where $\nu_k \sim \mathcal{N}(0,Q_{\nu})$.\\
+  $Q_\omega$, $Q_\nu$ are the \textbg{covariance matrices} of the noises: this notation assumes that they are \textbg{constant} but in case they are \textbg{time-varying}, the following would work in the same way.
 \end{frame}
 \begin{frame}{Kalman filter}{The vectorial case}
   By applying the same reasoning as before, with appropriate algebraic manipulations:
@@ -130,7 +132,8 @@
       P_{k+1} &= (I - K_{k+1}C)P_{k+1}^{-},\label{eq:innovcovvec}
     \end{align}
   \end{subequations}
-  where $I$ is the identity matrix.
+  where $I$ is the identity matrix.\\
+  The idea behind this is still the \textbg{combination of Gaussian random variables}.
 \end{frame}
 
 % --- Extended Kalman Filter ---
@@ -142,7 +145,7 @@
       z_k &= h(x_k,\nu_k),
     \end{align}
   \end{subequations}
-  with random variables as before.\\
+  with noises as random variables as before.\\
   In this case, we can resort to a \textbg{linearization} to \textbg{reapply the same reasoning}, but we lose \textbg{convergence properties}.\\
   Nonetheless, the \textbg{Extended Kalman Filter} (EKF) is a \textbg{widely used} heuristic state estimation technique, achieving \textbg{good results} in many practical scenarios.
 \end{frame}
@@ -151,19 +154,19 @@
   Given the \textbg{current estimate} $\hat{x}_k$ at time $k$ and the \textbg{prediction} $\hat{x}_{k+1}^{-}$ at time $k+1$, we can write:
   \begin{subequations}
     \begin{align}
-      f(x_k,u_k,\omega_k) &\approx f(\hat{x}_k,u_k,0) + F_k(x_k - \hat{x}_k) + W_k\omega_k,\\
-      h(x_{k+1},\nu_{k+1}) &\approx h(\hat{x}_{k+1}^{-},0) + H_{k+1}(x_{k+1} - \hat{x}_{k+1}^{-}) + L_{k+1}\nu_{k+1},
+      f(x_k,u_k,\omega_k) &= {\color{red}f(\hat{x}_k,u_k,0)} + {\color{red}F_k}(x_k - {\color{red}\hat{x}_k}) + W_k\omega_k + o(\|x_k - \hat{x}_k\|),\label{eq:flin}\\
+      h(x_{k+1},\nu_{k+1}) &= {\color{blue}h(\hat{x}_{k+1}^{-},0)} + {\color{blue}H_{k+1}}(x_{k+1} {\color{blue}- \hat{x}_{k+1}^{-}}) + L_{k+1}\nu_{k+1} + o(\|x_{k+1} - \hat{x}_{k+1}^{-}\|),\label{eq:hlin}
     \end{align}
   \end{subequations}
-  where $F=\partial f/\partial x$, $W=\partial f/\partial \omega$, $H=\partial h/\partial x$, and $L=\partial h/\partial \nu$ are Jacobian matrices.\\
-  Grouping some \textbg{known terms}, these lead to a \textbg{linear system}:
+  where $F=\partial f/\partial x$, $W=\partial f/\partial \omega$, $H=\partial h/\partial x$, and $L=\partial h/\partial \nu$ are Jacobian matrices, which we evaluate at appropriate times.\\
+  Taking \eqref{eq:flin}-\eqref{eq:hlin} as exact and rearranging known terms, these lead to:
   \begin{subequations}
     \begin{align}
-      x_{k+1} &= F_k x_k + f_0(\hat{x}_k,u_k) + W_k\omega_k,\\
-      z_{k+1} - h_0(\hat{x}_{k+1}^{-}) &= H_{k+1}x_{k+1} + L_{k+1}\nu_{k+1},\label{eq:newmeas}
+      x_{k+1} &= F_k x_k + {\color{red}f_0(\hat{x}_k,u_k)} + W_k\omega_k,\\
+      z_{k+1} &= H_{k+1}x_{k+1} + {\color{blue}h_0(\hat{x}_{k+1}^{-})} + L_{k+1}\nu_{k+1},\label{eq:newmeas}
     \end{align}
   \end{subequations}
-  where \eqref{eq:newmeas} can be considered a measurement, subtracting a \textbg{known term} from the \textbg{true measurement}.
+  which is easier to manage, both in terms of algebra and \textbg{computational complexity}.
 \end{frame}
 \begin{frame}{Extended Kalman Filter}{The equations}
   By applying the same reasoning as before, with appropriate algebraic manipulations:
@@ -179,7 +182,46 @@
   It is a \textbg{good compromise} between \textbg{accuracy} and \textbg{computational complexity}.
 \end{frame}
 
-% TODO:
-% - rearrange section to explain this first
-% - it works empyrically. Pointers to other filters and estimators
-% - robot_localization
+% --- Beyond EKF ---
+\begin{frame}{Beyond EKF}{The art of filtering}
+  The Kalman Filter and the Extended Kalman Filter gave birth to an entire \textbg{family of algorithms} for \textbg{state estimation}, \textbg{sensor fusion}, and ultimately \textbg{localization}.\\
+  Some notable examples among the many ones:
+  \begin{itemize}
+    \item<1-> \textbg{Unscented Kalman Filter (UKF)}, where the measurement function is not linearized;
+    \item<2-> \textbg{Particle Filter (PF)}, where the state is represented by a set of particles each with a likelihood weight, based on Monte Carlo methods;
+    \item<3-> \textbg{Multi-Hypotheses Kalman Filter (MHKF)}, where the number of hypotheses may change over time;
+    \item<4-> \textbg{Switching Kalman Filter (SKF)}, where the system may switch between different models, useful to estimate the state of a hybrid system;
+    \item<5-> \textbg{Moving Horizon Estimation (MHE)}, where the state is estimated by minimizing a cost function over a finite time horizon.
+  \end{itemize}
+\end{frame}
+
+% --- robot_localization ---
+\begin{frame}{robot\_localization}{An EKF for ROS 2}
+  One of the very first packages developed for ROS, and one of the first \href{https://github.com/cra-ros-pkg/robot_localization}{\color{blue}\underline{\textbf{community projects}}}.\\
+  \medskip
+  It is a flexible and powerful \textbg{EKF implementation inside a ROS 2 node}, featuring:
+  \begin{itemize}
+    \item support for a wide range of \textbg{sensor types} using \textbg{standard interfaces};
+    \item \textbg{multi-rate} sensor fusion algorithm, with customizable publication rate;
+    \item automatic \textbg{sensor data frame conversion} using tf2;
+    \item real-time \textbg{tf2 broadcasting};
+    \item support for both \textbg{local} and \textbg{global data} with \textbg{two chained instances}.
+  \end{itemize}
+\end{frame}
+\begin{frame}{robot\_localization}{Global localization}
+  When both local (\emph{i.e.}, w.r.t. the starting point) and global (\emph{i.e.}, w.r.t. the world origin) localization data is available, \texttt{robot\_localization} can be used to \textbg{fuse} them, \textbg{compensating odometry drift}.\\
+  \bigskip
+  \textbg{Two instances} of the node must be active: a \textbg{local} one and a \textbg{global} one.
+  \begin{description}
+    \item[\textbg{Local:}] works in the local \textbg{odom frame}, fusing \textbg{odometry} and other \textbg{inertial data} expressed in body frame; publishes the local pose and tf.
+    \item[\textbg{Global:}] works in the global \textbg{world frame}, fusing \textbg{the same data as the local instance plus global localization data} (e.g., GPS, LiDAR, SLAM); publishes the global pose and tf, and \textbg{broadcasts the world $\rightarrow$ odom tf}, allowing to:
+    \begin{itemize}
+      \item correct all local globalization data \textbg{without resetting the state of the local systems};
+      \item transform all \textbg{data expressed in the local frame} (\emph{e.g.}, point clouds generated by tracking cameras) \textbg{compensating odometry drift.}
+    \end{itemize}
+  \end{description}
+\end{frame}
+\begin{frame}{robot\_localization}{Global localization example: visual odometry and Visual SLAM}
+  \centering
+	\movie[width=.8\textwidth, height=.82\textheight, poster, autostart]{}{phd23_orb2-global-cut.mp4}
+\end{frame}
